@@ -1627,81 +1627,323 @@ display: none;
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#description-of-data-matrix-a" id="toc-description-of-data-matrix-a">2. Description of Data Matrix
+A</a>
+<ul>
+<li><a href="#title-wine-data-adapted-for-unsupervised-learning" id="toc-title-wine-data-adapted-for-unsupervised-learning">Title: Wine
+Data (Adapted for Unsupervised Learning)</a></li>
+<li><a href="#sources" id="toc-sources">Sources:</a></li>
+<li><a href="#relevant-information" id="toc-relevant-information">Relevant Information:</a></li>
+<li><a href="#number-of-instances" id="toc-number-of-instances">Number
+of Instances:</a></li>
+<li><a href="#number-of-attributes" id="toc-number-of-attributes">Number
+of Attributes:</a></li>
+<li><a href="#attribute-information" id="toc-attribute-information">Attribute Information:</a></li>
+<li><a href="#missing-attribute-values" id="toc-missing-attribute-values">Missing Attribute Values:</a></li>
+<li><a href="#preprocessing" id="toc-preprocessing">Preprocessing:</a></li>
+<li><a href="#summary-statistics" id="toc-summary-statistics">Summary
+Statistics:</a></li>
+</ul></li>
+<li><a href="#the-ampl-.mod-and-.dat-files" id="toc-the-ampl-.mod-and-.dat-files">3. The AMPL <code>.mod</code> and
+<code>.dat</code> Files</a>
+<ul>
+<li><a href="#sample-of-wine.dat-file" id="toc-sample-of-wine.dat-file">Sample of <code>wine.dat</code>
+File:</a></li>
+<li><a href="#contents-of-clustering.mod-file" id="toc-contents-of-clustering.mod-file">Contents of
+<code>clustering.mod</code> file:</a></li>
+</ul></li>
+<li><a href="#the-optimal-solution-obtained-with-ampl." id="toc-the-optimal-solution-obtained-with-ampl.">4. The optimal
+solution obtained with AMPL.</a></li>
+<li><a href="#a-description-of-how-the-minimum-spanning-tree-was-computed-which-software-used-etc." id="toc-a-description-of-how-the-minimum-spanning-tree-was-computed-which-software-used-etc.">5.
+A description of how the minimum spanning tree was computed (which
+software used, etc.)</a></li>
+<li><a href="#the-heuristic-solution-obtained-with-the-minimum-spanning-tree-procedure." id="toc-the-heuristic-solution-obtained-with-the-minimum-spanning-tree-procedure.">6.
+The heuristic solution obtained with the minimum spanning tree
+procedure.</a></li>
+<li><a href="#a-comparison-of-the-two-solutions-obtained-in-terms-of-the-objective-function-of-the-integer-optimization-problem.-optionally-you-may-provide-any-other-additional-criteria-for-comparison." id="toc-a-comparison-of-the-two-solutions-obtained-in-terms-of-the-objective-function-of-the-integer-optimization-problem.-optionally-you-may-provide-any-other-additional-criteria-for-comparison.">7.
+A comparison of the two solutions obtained, in terms of the objective
+function of the integer optimization problem. Optionally, you may
+provide any other additional criteria for comparison.</a></li>
+<li><a href="#any-other-observation-or-comment-you-may-want-to-add-or-any-problem-you-had-when-performing-the-assignment." id="toc-any-other-observation-or-comment-you-may-want-to-add-or-any-problem-you-had-when-performing-the-assignment.">8.
+Any other observation or comment you may want to add, or any problem you
+had when performing the assignment.</a></li>
+<li><a href="#not-to-be-included" id="toc-not-to-be-included">Not to be
+included:</a></li>
+</ul>
+</div>
 
-<p>Now we do preprocessing, including The Z-score normalization is
-commonly used in clustering.</p>
-<p>python3 clean_data_linprog.py wine-clustering.csv 3 wine.dat “,”</p>
-<pre class="bash"><code>cd /home/julian/uni_folder/OTDM/OTDM_Project_2/3/linprog/
-python3 clean_data_linprog.py wine-clustering.csv 3 scaledWine.txt matrixWine.txt &quot;,&quot;
-</code></pre>
-<pre class="bash"><code>cd /home/julian/uni_folder/OTDM/OTDM_Project_2/3/linprog/
-/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl &lt;&lt; EOF 
+<ol style="list-style-type: decimal">
+<li>A cover page with the name of the two (and exactly two!) members of
+the group</li>
+</ol>
+<p>put a picture of UPC maybe? we have to knit to pdf i think</p>
+<div id="description-of-data-matrix-a" class="section level2">
+<h2>2. Description of Data Matrix A</h2>
+<div id="title-wine-data-adapted-for-unsupervised-learning" class="section level3">
+<h3>Title: Wine Data (Adapted for Unsupervised Learning)</h3>
+</div>
+<div id="sources" class="section level3">
+<h3>Sources:</h3>
+<ul>
+<li><strong>Original Source</strong>: UCI Machine Learning
+Repository</li>
+<li><strong>Original Dataset</strong>: <a href="https://archive.ics.uci.edu/ml/datasets/wine">Wine
+Dataset</a></li>
+<li><strong>Creator</strong>: Forina et al. (1991), Analytical
+Chemistry</li>
+</ul>
+</div>
+<div id="relevant-information" class="section level3">
+<h3>Relevant Information:</h3>
+<p>These data are the results of a chemical analysis of wines grown in
+the same region in Italy, derived from three different cultivars. The
+analysis determined the quantities of 13 constituents found in each of
+the three types of wines. The dataset is adapted for unsupervised
+learning by removing the labels that classify the types of wines.</p>
+<ul>
+<li><strong>Data Usage</strong>: Frequently used for clustering, PCA,
+and classification studies.</li>
+<li><strong>Domain</strong>: Chemistry, wine analysis, and machine
+learning.</li>
+</ul>
+</div>
+<div id="number-of-instances" class="section level3">
+<h3>Number of Instances:</h3>
+<ul>
+<li>178 wine samples.</li>
+</ul>
+</div>
+<div id="number-of-attributes" class="section level3">
+<h3>Number of Attributes:</h3>
+<ul>
+<li>13 numeric continuous attributes.</li>
+</ul>
+</div>
+<div id="attribute-information" class="section level3">
+<h3>Attribute Information:</h3>
+<ol style="list-style-type: decimal">
+<li>Alcohol</li>
+<li>Malic acid</li>
+<li>Ash</li>
+<li>Alcalinity of ash</li>
+<li>Magnesium</li>
+<li>Total phenols</li>
+<li>Flavanoids</li>
+<li>Nonflavanoid phenols</li>
+<li>Proanthocyanins</li>
+<li>Color intensity</li>
+<li>Hue</li>
+<li>OD280/OD315 of diluted wines</li>
+<li>Proline</li>
+</ol>
+</div>
+<div id="missing-attribute-values" class="section level3">
+<h3>Missing Attribute Values:</h3>
+<ul>
+<li>None.</li>
+</ul>
+</div>
+<div id="preprocessing" class="section level3">
+<h3>Preprocessing:</h3>
+<p>The dataset was scaled using Z-score normalization to standardize the
+features to zero mean and unit variance for better interpretability and
+clustering performance. After scaling, the Euclidean distance was
+calculated, and this matrix of distances was formatted to AMPL
+compatible .dat files.</p>
+</div>
+<div id="summary-statistics" class="section level3">
+<h3>Summary Statistics:</h3>
+<table>
+<colgroup>
+<col width="41%" />
+<col width="10%" />
+<col width="11%" />
+<col width="10%" />
+<col width="27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Feature</th>
+<th align="right">Min</th>
+<th align="right">Max</th>
+<th align="right">Mean</th>
+<th align="right">Standard Deviation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Alcohol</td>
+<td align="right">11.03</td>
+<td align="right">14.83</td>
+<td align="right">13.00</td>
+<td align="right">0.81</td>
+</tr>
+<tr class="even">
+<td align="left">Malic acid</td>
+<td align="right">0.74</td>
+<td align="right">5.80</td>
+<td align="right">2.34</td>
+<td align="right">1.12</td>
+</tr>
+<tr class="odd">
+<td align="left">Ash</td>
+<td align="right">1.36</td>
+<td align="right">3.23</td>
+<td align="right">2.36</td>
+<td align="right">0.27</td>
+</tr>
+<tr class="even">
+<td align="left">Alcalinity of ash</td>
+<td align="right">10.60</td>
+<td align="right">30.00</td>
+<td align="right">19.49</td>
+<td align="right">3.34</td>
+</tr>
+<tr class="odd">
+<td align="left">Magnesium</td>
+<td align="right">70.00</td>
+<td align="right">162.00</td>
+<td align="right">99.74</td>
+<td align="right">14.28</td>
+</tr>
+<tr class="even">
+<td align="left">Total phenols</td>
+<td align="right">0.98</td>
+<td align="right">3.88</td>
+<td align="right">2.29</td>
+<td align="right">0.63</td>
+</tr>
+<tr class="odd">
+<td align="left">Flavanoids</td>
+<td align="right">0.34</td>
+<td align="right">5.08</td>
+<td align="right">2.03</td>
+<td align="right">0.99</td>
+</tr>
+<tr class="even">
+<td align="left">Nonflavanoid phenols</td>
+<td align="right">0.13</td>
+<td align="right">0.66</td>
+<td align="right">0.36</td>
+<td align="right">0.12</td>
+</tr>
+<tr class="odd">
+<td align="left">Proanthocyanins</td>
+<td align="right">0.41</td>
+<td align="right">3.58</td>
+<td align="right">1.59</td>
+<td align="right">0.57</td>
+</tr>
+<tr class="even">
+<td align="left">Color intensity</td>
+<td align="right">1.28</td>
+<td align="right">13.00</td>
+<td align="right">4.71</td>
+<td align="right">2.43</td>
+</tr>
+<tr class="odd">
+<td align="left">Hue</td>
+<td align="right">0.48</td>
+<td align="right">1.71</td>
+<td align="right">0.96</td>
+<td align="right">0.23</td>
+</tr>
+<tr class="even">
+<td align="left">OD280/OD315 of diluted wines</td>
+<td align="right">1.27</td>
+<td align="right">4.00</td>
+<td align="right">2.61</td>
+<td align="right">0.71</td>
+</tr>
+<tr class="odd">
+<td align="left">Proline</td>
+<td align="right">278.00</td>
+<td align="right">1680.00</td>
+<td align="right">746.89</td>
+<td align="right">314.91</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="the-ampl-.mod-and-.dat-files" class="section level2">
+<h2>3. The AMPL <code>.mod</code> and <code>.dat</code> Files</h2>
+<div id="sample-of-wine.dat-file" class="section level3">
+<h3>Sample of <code>wine.dat</code> File:</h3>
+<pre class="plaintext"><code>param m := 178;
+param k := 3;
+param d: 1 2 ... 177 178 :=
+1   0.000000  3.497535 ...  6.078781  7.184421
+2   3.497535  0.000000 ...  6.094927  7.367719
+... 
+178 7.184421  7.367719 ...  3.324276  0.000000;</code></pre>
+</div>
+<div id="contents-of-clustering.mod-file" class="section level3">
+<h3>Contents of <code>clustering.mod</code> file:</h3>
+<pre class="plaintext"><code>/#Below we define the AMPL model for clustering
+param m;
+param k;
+param d{1..m, 1..m};
+var x{1..m, 1..m} binary;
 
-# PRIMAL
-print &quot;### Solve problem ###&quot;; print &quot;&quot;;
-reset; reset data;
-
-## Set options
-model cluster.mod;
-data wine2.dat;
-option solver cplex;
-option cplex_options &#39;timing 1&#39;;
-solve;
-
-print &quot;### Matrix x (formulation) ###&quot;; print &quot;&quot;;
-#display x;
-
-
-print &quot;### Number of points per cluster ###&quot;; print &quot;&quot;;
-
-var total{i in 1..m};
-
-for{i in 1..m} {
-    for{j in 1..m}{
-        let total[i] := total[i] + x[j,i];
-    }
-} 
-
-
-display total;
-EOF</code></pre>
-<pre><code>## ### Solve problem ###
-## 
-## CPLEX 22.1.1.0: timing 1
+minimize f: sum{i in 1..m, j in 1..m} d[i,j]*x[i,j];
+subject to c1{i in 1..m}: sum{j in 1..m} x[i,j] = 1;
+/# This constraint ensures every point belongs to 1 cluster
+subject to c2: sum{j in 1..m} x[j,j] = k;
+/# This constraint ensure that there are exactly k clusters
+subject to c3{i in 1..m, j in 1..m}: x[j,j] &gt;= x[i,j];
+/# This constraint ensures that a point can only be part of a cluster that exists</code></pre>
+</div>
+</div>
+<div id="the-optimal-solution-obtained-with-ampl." class="section level2">
+<h2>4. The optimal solution obtained with AMPL.</h2>
+<pre><code>## CPLEX 22.1.1.0: timing 1
 ## 
 ## Times (seconds):
-## Input =  0.0143395
-## Solve =  4.29026
-## Output = 0.0970871
+## Input =  0.0329404
+## Solve =  4.36014
+## Output = 0.101666
 ## CPLEX 22.1.1.0: optimal integer solution; objective 500.929194
 ## 5298 MIP simplex iterations
 ## 0 branch-and-bound nodes
-## ### Matrix x (formulation) ###
+##      Matrix x (formulation)
 ## 
-## ### Number of points per cluster ###
+##      Number of points per cluster
 ## 
-## total [*] :=
-##   1  0    21  0    41  0    61  0    81  0   101  0   121  0   141  0   161  0
-##   2  0    22  0    42  0    62  0    82  0   102  0   122  0   142  0   162  0
-##   3  0    23  0    43  0    63  0    83  0   103  0   123  0   143  0   163  0
-##   4  0    24  0    44  0    64  0    84  0   104  0   124  0   144  0   164  0
-##   5  0    25  0    45  0    65  0    85  0   105  0   125  0   145  0   165  0
-##   6  0    26  0    46  0    66  0    86  0   106  0   126  0   146  0   166  0
-##   7  0    27  0    47  0    67  0    87  0   107 55   127  0   147  0   167  0
-##   8  0    28  0    48  0    68  0    88  0   108  0   128  0   148  0   168  0
-##   9  0    29  0    49  0    69  0    89  0   109  0   129  0   149 49   169  0
-##  10  0    30  0    50  0    70  0    90  0   110  0   130  0   150  0   170  0
-##  11  0    31  0    51  0    71  0    91  0   111  0   131  0   151  0   171  0
-##  12  0    32  0    52  0    72  0    92  0   112  0   132  0   152  0   172  0
-##  13  0    33  0    53  0    73  0    93  0   113  0   133  0   153  0   173  0
-##  14  0    34  0    54  0    74  0    94  0   114  0   134  0   154  0   174  0
-##  15  0    35  0    55  0    75  0    95  0   115  0   135  0   155  0   175  0
-##  16  0    36 74    56  0    76  0    96  0   116  0   136  0   156  0   176  0
-##  17  0    37  0    57  0    77  0    97  0   117  0   137  0   157  0   177  0
-##  18  0    38  0    58  0    78  0    98  0   118  0   138  0   158  0   178  0
-##  19  0    39  0    59  0    79  0    99  0   119  0   139  0   159  0
-##  20  0    40  0    60  0    80  0   100  0   120  0   140  0   160  0
-## ;</code></pre>
+##      Non-zero clusters
+## Cluster 36 has 74 points
+## Cluster 107 has 55 points
+## Cluster 149 has 49 points</code></pre>
+</div>
+<div id="a-description-of-how-the-minimum-spanning-tree-was-computed-which-software-used-etc." class="section level2">
+<h2>5. A description of how the minimum spanning tree was computed
+(which software used, etc.)</h2>
+</div>
+<div id="the-heuristic-solution-obtained-with-the-minimum-spanning-tree-procedure." class="section level2">
+<h2>6. The heuristic solution obtained with the minimum spanning tree
+procedure.</h2>
+</div>
+<div id="a-comparison-of-the-two-solutions-obtained-in-terms-of-the-objective-function-of-the-integer-optimization-problem.-optionally-you-may-provide-any-other-additional-criteria-for-comparison." class="section level2">
+<h2>7. A comparison of the two solutions obtained, in terms of the
+objective function of the integer optimization problem. Optionally, you
+may provide any other additional criteria for comparison.</h2>
+</div>
+<div id="any-other-observation-or-comment-you-may-want-to-add-or-any-problem-you-had-when-performing-the-assignment." class="section level2">
+<h2>8. Any other observation or comment you may want to add, or any
+problem you had when performing the assignment.</h2>
+<p>Conclusion: …</p>
+</div>
+<div id="not-to-be-included" class="section level1">
+<h1>Not to be included:</h1>
+<pre class="r"><code>setwd(&quot;~/uni_folder/OTDM/UPC-OTDM-main/3/linprog&quot;)
+#cd /home/julian/uni_folder/OTDM/OTDM_Project_2/3/linprog/</code></pre>
+<p>(for generating script: cd
+/home/julian/uni_folder/OTDM/OTDM_Project_2/3/linprog/ python3
+clean_data_linprog.py wine-clustering.csv 3 scaledWine.txt
+matrixWine.txt “,”)</p>
+</div>
 
 
 
