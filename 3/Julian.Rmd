@@ -1,0 +1,535 @@
+---
+title: 'OTDM - Constrained Optimization - SVM'
+author: "Julian Fransen, Danila Kokin"
+date: "2024-11-24"
+output:
+  html_document:
+    toc: true
+    toc_depth: '3'
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+
+# Section 1: implement SVM in AMPL
+
+In this first section, we generate data using the generators given, and use this as a use case for SVMs. We implement both the primal and dual in AMPL. 
+
+## Data generation and preprocessing
+
+We generate the data using `gensvdat`, where we use our 2 students identifier numbers for the seed for training and test, e.g. :
+
+`./gensvmdat tes_raw.dat 100 4624        # te =  test, s = small -> tes`
+
+`./gensvmdat trl_raw.dat 100 7438042     # tr = train, l = large -> trl`
+
+We create 4 files in total: a small set of 100 points and a large one of 100k points. We use the same size for testing and training. After creating the raw data files, we utilize a shell script which performs processing so make sure that the data files can be loaded into AMPL. This consist of adding a header including variables `m` and `n`, removing the `*` symbol and displaying in terminal the number of misclassifications. Finally, we copy the processed data files to the `primal/` and `dual/` directories. 
+
+### Primal SVM Problem
+
+We aim to solve the following optimization problem:
+
+\[
+\min_{w, \gamma, s} \frac{1}{2} w^T w + \nu e^T s
+\]
+
+subject to:
+\[
+Y(Aw + \gamma e) + s \geq e,
+\]
+\[
+s \geq 0,
+\]
+
+where:
+
+- **Decision Variables**:
+  \[
+  (w, \gamma, s) \in \mathbb{R}^{n+1+m},
+  \]
+  - \( w \in \mathbb{R}^n \): Weight vector for the hyperplane.
+  - \( \gamma \in \mathbb{R} \): Bias term.
+  - \( s \in \mathbb{R}^m \): Slack variables for handling misclassifications.
+
+- **Constants**:
+  - \( \nu > 0 \): Regularization parameter controlling the trade-off between margin size and misclassification penalty.
+  - \( A \in \mathbb{R}^{m \times n} \): Matrix where rows represent feature vectors of the data points.
+  - \( Y \in \mathbb{R}^{m \times m} \): Diagonal matrix of labels, where \( Y_{ii} = y_i \), and \( y_i \in \{-1, 1\} \).
+  - \( e \in \mathbb{R}^m \): Vector of ones (\( e = [1, 1, \ldots, 1]^T \)).
+
+
+### Dual SVM Formulation
+
+We formulate the dual SVM model using explicit indices instead of matrix notation.
+
+Objective Function
+\[
+\max_{\lambda} \quad \sum_{i=1}^m \lambda_i - \frac{1}{2} \sum_{i=1}^m \sum_{j=1}^m \lambda_i \lambda_j y_i y_j \left( \sum_{k=1}^n A_{ik} A_{jk} \right)
+\]
+
+subject to:
+1. \[
+   \sum_{i=1}^m \lambda_i y_i = 0
+   \]
+2. \[
+   0 \leq \lambda_i \leq \nu, \quad \forall i = 1, \dots, m
+   \]
+
+where:
+
+- \( \lambda_i \): Dual variable for the \( i \)-th data point.
+- \( y_i \): Label of the \( i \)-th data point (\( \pm1 \)).
+- \( A_{ik} \): Feature \( k \) of the \( i \)-th data point.
+- \( \nu \): Regularization parameter.
+
+### The Separation Hyperplane in SVM
+
+The separation hyperplane in a Support Vector Machine (SVM) is determined by \( \mathbf{w} \) (the weight vector) and \( \gamma \) (the bias term). It defines the decision boundary that separates the two classes. The equation of the hyperplane is:
+\[
+\sum_{j=1}^n w_j x_j + \gamma = 0
+\]
+
+where:
+- \( \mathbf{w} = [w_1, w_2, \dots, w_n] \) is the weight vector,
+- \( \gamma \) is the bias term,
+- \( \mathbf{x} = [x_1, x_2, \dots, x_n] \) represents the coordinates of a point in \( n \)-dimensional space.
+
+
+The decision rule for classification is:
+\[
+f(\mathbf{x}) = \text{sign} \left( \sum_{j=1}^n w_j x_j + \gamma \right)
+\]
+
+- If \( f(\mathbf{x}) > 0 \), classify as \( +1 \).
+- If \( f(\mathbf{x}) < 0 \), classify as \( -1 \).
+
+Since the separation hyperplane only depends on `w` and $\gamma$, we know that the if these are the same for the primal and dual, then the hyperplane will be the same as well. To find the the values of `w` and $\gamma$ for the dual problem, we use these formulas:
+\[
+w = \sum_{i=1}^m \lambda_i y_i \phi (x_i)
+\]
+where $\phi$ is the identity matrix, in this particular case. 
+\[
+\gamma = y_k - \sum_{j=1}^n w_j \cdot A_{k,j}
+\]
+where `k` is the index of the first support vector. We will find support vectors based on the property: $0 < \lambda_k < \nu$ for all $k \in SV$.
+
+
+### Primal on small dataset
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model primal.mod;
+data trs.dat;
+let nu := 0.9;
+solve;
+display n, gamma, w;
+display n, gamma, w > sparams.dat;
+quit;
+EOF
+```
+
+```{bash, include=FALSE}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+chmod +x fix_params.sh
+./fix_params.sh sparams.dat
+```
+### Primal on large dataset
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model primal.mod;
+data trl.dat;
+let nu := 0.9;
+solve;
+display gamma, w;
+display n, gamma, w > lparams.dat;
+quit;
+EOF
+```
+
+```{bash, include=FALSE}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+chmod +x fix_params.sh
+./fix_params.sh lparams.dat
+```
+
+
+### Dual on small dataset
+
+To calculate the `w*` and $\gamma$ we use the aforementioned formulas, which we implement in a for loop in AMPL.
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model dual.mod;
+data trs.dat;
+let nu := 0.9;
+solve;
+param w {j in 1..n};
+for {j in 1..n} { 
+    let w[j] := sum {i in 1..m} lambda[i] * y[i] * A[i, j];
+}
+param svi default 0;
+for {i in 1..m} {
+    if lambda[i] > 1e-5 and lambda[i] < nu then {
+        let svi := i;
+        break;
+    }
+}
+check: svi > 0;
+param gamma := y[svi] - sum {j in 1..n} w[j] * A[svi, j];
+display gamma, w;
+display n, gamma, w > sparams.dat;
+quit;
+EOF
+```
+
+```{bash, include=FALSE}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+chmod +x fix_params.sh
+./fix_params.sh sparams.dat
+```
+
+### Dual on large dataset
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model dual.mod;
+data trs.dat;
+let nu := 0.9;
+solve;
+param w {j in 1..n};
+for {j in 1..n} { 
+    let w[j] := sum {i in 1..m} lambda[i] * y[i] * A[i, j];
+}
+param svi default 0;
+for {i in 1..m} {
+    if lambda[i] > 1e-5 and lambda[i] < nu then {
+        let svi := i;
+        break;
+    }
+}
+check: svi > 0;
+param gamma := y[svi] - sum {j in 1..n} w[j] * A[svi, j];
+display gamma, w;
+display n, gamma, w > lparams.dat;
+quit;
+EOF
+```
+
+```{bash, include=FALSE}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+chmod +x fix_params.sh
+./fix_params.sh lparams.dat
+```
+
+As you can see, the values for the objective function, `w*` and $\gamma$ are identical (at least up to 5 decimals) for the dual and the primal for the small and large dataset, which means they found both exactly the same optimal hyperplane. The objective function finds the same value up to (at least!) 8 decimals. This is consistent with theory: the dual should be exactly the same as the primal, except with fewer constraints. Any difference can be explained by numerical inaccuracies by the implementation, for example by the solver. We use the default solver (cplex) since it seemed most appropriate and is computationally efficient, but we did look into alternatives. 
+
+## Evaluation
+
+### Small dataset 
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model eval.mod;
+data tes.dat;
+data sparamsformated.dat;
+display accuracy, precision, recall, f1_score;
+quit;
+EOF
+```
+
+### Large dataset 
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model eval.mod;
+data tel.dat;
+data lparamsformated.dat;
+display accuracy, precision, recall, f1_score;
+quit;
+EOF
+```
+
+### Dual on small dataset 
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model eval.mod;
+data tes.dat;
+data sparamsformated.dat;
+display accuracy, precision, recall, f1_score;
+quit;
+EOF
+```
+
+As observed, both primal and dual SVMs produce identical results, achieving an accuracy of 88% and 95% for the small and large training dataset, respectively. This aligns with theoretical expectations: based on large samples we see that roughly 5% of generated data is a misclassification, meaning that 95% is the theoretical maximum for accuracy. We do not show the dual applied to the large dataset for this evaluation, because of computational limitations, but we know from before that the obtained results are identical to the primal trained on the large dataset. 
+
+# Section 2: applying SVMs to a new dataset. 
+
+As a real-world testing data for our SVMs we have selected Banknote dataset (https://archive.ics.uci.edu/dataset/267/banknote+authentication). Images of genuine and forged banknotes were digitized using an industrial camera (400x400 pixels, 660 dpi). There are 4 features which were extracted using wavelet transformation and 1 target:
+
+- variance of Wavelet Transformed image (continuous)
+
+- skewness of Wavelet Transformed image (continuous)
+
+- kurtosis of Wavelet Transformed image (continuous)
+
+- entropy of image (continuous)
+
+- class	(binary target: 0 for authentic, 1 for inauthentic)
+
+```{r}
+# Step 1: Load the data
+df <- read.csv("/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/data_formatter/money.csv")
+```
+
+```{r}
+barplot_heights <- table(df$class)
+barplot_positions <- barplot(barplot_heights,
+                             main = "Bar Plot of Class (target)",
+                             xlab = "Class",
+                             ylab = "Frequency",
+                             col = c("red", "blue"),
+                             ylim = c(0, max(barplot_heights) + 10))
+
+text(x = barplot_positions, y = barplot_heights, 
+     labels = barplot_heights, pos = 3, cex = 0.8)
+
+legend("topright", legend = c("Class 0: authentic ", "Class 1: inauthentic"), 
+       fill = c("red", "blue"), title = "Class")
+```
+
+The target classes are balanced; however, some preprocessing steps are still required. The id column needs to be removed, the dataset should be split into equal train and test sets, normalized, and the target values should be converted from (0, 1) to (-1, 1).
+
+```{r}
+# Convert 'class' column to binary variable (1 and -1)
+df$class <- ifelse(df$class == 1, 1, -1)
+df$id <- NULL
+
+# Split the data into train and test sets
+set.seed(123)
+trainll <- sample(1:nrow(df), size = nrow(df) / 2)
+testll <- setdiff(1:nrow(df), trainll)
+
+train <- df[trainll, ]
+test <- df[testll, ]
+
+numeric_cols <- names(train)[sapply(train, is.numeric) & names(train) != "class"]
+
+# Compute min and max values for each numeric column in the training set
+min_vals <- sapply(train[, numeric_cols], min, na.rm = TRUE)
+max_vals <- sapply(train[, numeric_cols], max, na.rm = TRUE)
+
+# Define normalization function
+normalize <- function(x, min_val, max_val) {
+  (x - min_val) / (max_val - min_val)
+}
+
+# Apply normalization to the train set
+for (col_name in numeric_cols) {
+  min_val <- min_vals[col_name]
+  max_val <- max_vals[col_name]
+  train[[col_name]] <- normalize(train[[col_name]], min_val, max_val)
+}
+
+# Normalize test data (except target) based on the train normalizer
+for (col_name in numeric_cols) {
+  min_val <- min_vals[col_name]
+  max_val <- max_vals[col_name]
+  test[[col_name]] <- normalize(test[[col_name]], min_val, max_val)
+}
+
+summary(train)
+cat("Number of rows in train set:", nrow(train), "\n")
+
+summary(test)
+cat("Number of rows in test set:", nrow(test), "\n")
+
+train_file <- "/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/data_formatter/trm.csv"
+test_file <- "/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/data_formatter/tem.csv"
+
+write.csv(train, file = train_file, row.names = FALSE)
+write.csv(test, file = test_file, row.names = FALSE)
+```
+
+#### Check that data is not linearly separable
+
+```{r}
+data <- df
+features <- colnames(data)[1:4]
+target <- colnames(data)[5]
+num_features <- length(features)
+
+par(mfrow = c(2, 3))  # Set up a plotting grid
+
+for (i in 1:(num_features - 1)) {
+  for (j in (i + 1):num_features) {
+    # Plot each feature pair
+    plot(data[[features[i]]], data[[features[j]]],
+         col = ifelse(data[,target] == 1, "blue", "red"),
+         xlab = features[i], ylab = features[j],
+         main = paste("Feature Pair:", features[i], "vs", features[j]))
+  }
+}
+```
+
+As observed, no feature combination plot demonstrates linearly separable classes.
+
+```{r, include=FALSE}
+if (!requireNamespace("plotly", quietly = TRUE)) {
+  install.packages("plotly")
+}
+library(plotly)
+```
+
+```{r}
+data <- df
+features <- colnames(data)[1:4]
+target <- colnames(data)[5]
+
+pca_result <- prcomp(data[, features], scale. = TRUE)
+cat("Cumulative explained variance\n")
+summary(pca_result)$importance[3, 1:3] * 100
+
+pca_data <- data.frame(PC1 = pca_result$x[, 1],
+                       PC2 = pca_result$x[, 2],
+                       PC3 = pca_result$x[, 3],
+                       Label = data[[target]])
+
+plot <- plot_ly(
+  data = pca_data,
+  x = ~PC1, y = ~PC2, z = ~PC3,
+  color = ~Label,
+  colors = c("red", "blue"),
+  type = "scatter3d",
+  mode = "markers",
+  marker = list(size = 5)
+) %>%
+  layout(
+    scene = list(
+      xaxis = list(title = "PC 1"),
+      yaxis = list(title = "PC 2"),
+      zaxis = list(title = "PC 3")
+    ),
+    title = "3D PCA Plot"
+  )
+
+plot
+```
+As a final demonstration, we can plot a 3D visualization of the first three principal components, which explain approximately 95% of the variance. The plot clearly shows that the classes are not linearly separable, confirming the suitability of this data for training SVM models.
+
+```{bash, include=FALSE}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/data_formatter
+chmod +x csv_to_dat.sh
+./csv_to_dat.sh trm.csv trm.dat
+./csv_to_dat.sh tem.csv tem.dat
+
+chmod +x move_file.sh
+./move_file.sh trm.dat /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+./move_file.sh tem.dat /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+./move_file.sh trm.dat /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+./move_file.sh tem.dat /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+```
+
+### Primal model applied to money dataset
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model primal.mod;
+data trm.dat;
+let nu := 0.9;
+solve;
+display n, gamma, w;
+display n, gamma, w > mparams.dat;
+quit;
+EOF
+```
+
+
+```{bash, include=FALSE}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+chmod +x fix_params.sh
+./fix_params.sh mparams.dat
+```
+
+### Primal model evalutation
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/primal
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model eval.mod;
+data tem.dat;
+data mparamsformated.dat;
+display true_positive, true_negative, false_positive, false_negative;
+display accuracy, precision, recall, f1_score;
+quit;
+EOF
+```
+
+### Dual model applied to money dataset
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model dual.mod;
+data trm.dat;
+let nu := 0.9;
+solve;
+param w {j in 1..n};
+for {j in 1..n} { 
+    let w[j] := sum {i in 1..m} lambda[i] * y[i] * A[i, j];
+}
+param svi default 0;
+for {i in 1..m} {
+    if (lambda[i] > 1e-6) and (lambda[i] + 1e-7 < nu) then {
+        let svi := i;
+        break;
+    }
+}
+check: svi > 0;
+display svi;
+param gamma := y[svi] - sum {j in 1..n} w[j] * A[svi, j];
+display gamma, w;
+display n, gamma, w > mparams.dat;
+quit;
+EOF
+```
+
+```{bash, include=FALSE}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+chmod +x fix_params.sh
+./fix_params.sh mparams.dat
+```
+
+### Dual model evalutation
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/dual
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl <<EOF
+option solver cplex;
+model eval.mod;
+data tem.dat;
+data mparamsformated.dat;
+display true_positive, true_negative, false_positive, false_negative;
+display accuracy, precision, recall, f1_score;
+quit;
+EOF
+```
+As we can see both primal and dual SVMs efficiently produce prediction of the money class with accuracy of 98%, which is an outstanding result. They both get the same predictions on the test set, so the confusion matrix is identical. The `w*` and $\gamma$ values are identical as far as we can tell, which is up to 5 decimals. In order to get this result, we had to be smart about the implementation for finding the SV index: in AMPL there is not strict inequality, so instead of $\lambda_i < \nu$ we had to code $\lambda_i + 1e-7 < \nu$, otherwise it would return a datapoint that had a non-zero slack, meaning that $\lambda_i = \nu$. 
