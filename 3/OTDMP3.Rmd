@@ -1,0 +1,67 @@
+---
+title: 'OTDM - Constrained Optimization - SVM'
+author: "Julian Fransen, Danila Kokin"
+date: "2024-11-24"
+output:
+  html_document:
+    toc: true
+    toc_depth: '3'
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+
+
+```{r}
+setwd("~/uni_folder/OTDM/UPC-OTDM-main/3/linprog")
+#cd /home/julian/uni_folder/OTDM/OTDM_Project_2/3/linprog/
+```
+
+
+
+Now we do preprocessing, including The Z-score normalization is commonly used in clustering.
+
+python3 clean_data_linprog.py wine-clustering.csv 3 wine.dat ","
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_Project_2/3/linprog/
+python3 clean_data_linprog.py wine-clustering.csv 3 scaledWine.txt matrixWine.txt ","
+
+```
+
+
+```{bash}
+cd /home/julian/uni_folder/OTDM/OTDM_Project_2/3/linprog/
+/home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl << EOF 
+
+# PRIMAL
+print "### Solve problem ###"; print "";
+reset; reset data;
+
+## Set options
+model cluster.mod;
+data wine2.dat;
+option solver cplex;
+option cplex_options 'timing 1';
+solve;
+
+print "### Matrix x (formulation) ###"; print "";
+#display x;
+
+
+print "### Number of points per cluster ###"; print "";
+
+var total{i in 1..m};
+
+for{i in 1..m} {
+	for{j in 1..m}{
+		let total[i] := total[i] + x[j,i];
+	}
+} 
+
+
+display total;
+EOF
+```
+
+
+
