@@ -11,7 +11,6 @@ editor_options:
   chunk_output_type: inline
 ---
 
-
 1. A cover page with the name of the two (and exactly two!) members of the group
 
 put a picture of UPC maybe? we have to knit to pdf i think
@@ -19,10 +18,10 @@ put a picture of UPC maybe? we have to knit to pdf i think
 \begin{titlepage}
     \centering
     \vspace*{4cm} % Adjust vertical spacing
-    \includegraphics[width=\textwidth]{./UPC.jpg} % Replace with your image path
+    \includegraphics[width=\textwidth]{./UPC.jpg}
     \vfill
-    {\Huge \textbf{Your Report Title}} \\[1.5cm]
-    {\Large Author: Your Name} \\[0.5cm]
+    {\Huge \textbf{OTDM Lab assignment 3: Cluster median.}} \\[1.5cm]
+    {\Large Authors: Julian Fransen, Danila Kokin} \\[0.5cm]
     {\Large Date: \today}
     \vfill
 \end{titlepage}
@@ -125,6 +124,7 @@ subject to c3{i in 1..m, j in 1..m}: x[j,j] >= x[i,j];
 ```{bash, echo=FALSE}
 cd /home/julian/uni_folder/OTDM/OTDM_Project_2/3/linprog/
 /home/julian/uni_folder/OTDM/OTDM_p2/OTDM/ampl_linux-intel64/ampl << EOF 
+
 reset;
 reset data;
 
@@ -159,9 +159,96 @@ EOF
 
 ## 5. A description of how the minimum spanning tree was computed (which software used, etc.)
 
+The Minimum Spanning Tree (MST) computation and subsequent clustering process were implemented using Python in a Jupyter Notebook environment (.ipynb file). The following steps describe the methodology and tools used:
+
+#### Preprocessing
+
+- Outlier Removal: outlier detection and removal function based on the Interquartile Range (IQR) rule was implemented. Data points beyond 1.5 times the IQR from the first quartile (Q1) or third quartile (Q3) were identified as outliers and removed. This ensured the data was clean before clustering.
+- Data Normalization: cleaned dataset was standardized using z-score normalization, where each feature was transformed to have a mean of 0 and a standard deviation of 1.
+	
+#### MST Construction
+
+##### Software and Libraries
+- The MST computation was implemented using the Python library NetworkX.
+- Pairwise distances between data points were calculated using SciPy’s pdist function, which computes the Euclidean distance.
+-	The distance matrix was converted into a weighted graph using NetworkX’s Graph class.
+
+##### Algorithm Choice
+-	Two MST algorithms, Prim’s and Kruskal’s, were available, and the user could specify which to use by setting the algorithm parameter to 'prim' or 'kruskal'. This flexibility was provided by NetworkX’s minimum_spanning_tree function, which supports both algorithms.
+
+##### Steps
+- A distance matrix was computed using pdist.
+- A weighted graph was constructed where nodes represented data points and edges represented pairwise distances.
+- The MST was computed using the specified algorithm.
+	
+#### Clustering by MST Partitioning
+
+- Edge Removal: to partition the MST into the desired number of clusters (k), the `k-1` largest edges (based on their weights) were removed. This step disconnected the MST into k connected components, each representing a cluster.
+- Connected Components: the connected components of the resulting graph were identified using NetworkX’s connected_components function.
+- Cluster Assignments: each connected component was assigned a unique cluster label, and the data points in each component were grouped accordingly.
+
 ## 6. The heuristic solution obtained with the minimum spanning tree procedure.
 
+### Wine Dataset
+
+In the following analysis, we applied Prim’s and Kruskal’s algorithms to create Minimum Spanning Trees (MSTs) on the wine dataset. The clustering results are visualized in both 2D and 3D plots:
+
+Prim's algorithm          |  Kruskal's algorithm  
+:-------------------------:|:-------------------------:
+![](linprog/img/wine_prim_2d.png)  |  ![](linprog/img/wine_kruskal_2d.png)
+
+
+Prim's algorithm          |  Kruskal's algorithm  
+:-------------------------:|:-------------------------:
+![](linprog/img/wine_prim_3d.png)  |  ![](linprog/img/wine_kruskal_3d.png)
+
+Initially, the clustering results appeared suboptimal, with clusters formed as follows:
+
+- 1 obseravation in cluster 2
+
+- 1 obseravation in cluster 1
+
+- 59 observstions (the rest) in cluster 0
+
+This distribution raised concerns about the algorithm’s performance. However, it is important to note that the variance explained by the first three principal components is relatively low:
+
+```plaintext
+Explained variance by each principal component: [0.38853448 0.20487624 0.09547051]
+```
+
+Given this, the clustering results may be valid but are challenging to interpret visually in 2D or 3D projections. To further evaluate the algorithm’s performance, we tested it on a dataset with lower dimensionality.
+
+### Iris Dataset
+
+The Iris dataset, a widely known benchmark, includes only four features and three distinct plant classes. After applying outlier detection, scaling, and cleaning, we ran the same MST algorithms. The resulting clusters are illustrated below:
+
+Prim's algorithm          |  Kruskal's algorithm  
+:-------------------------:|:-------------------------:
+![](linprog/img/iris_prim_2d.png)  |  ![](linprog/img/iris_kruskal_2d.png)
+
+
+Prim's algorithm          |  Kruskal's algorithm  
+:-------------------------:|:-------------------------:
+![](linprog/img/iris_prim_3d.png)  |  ![](linprog/img/iris_kruskal_3d.png)
+
+In this case, the variance explained by the first three principal components is significantly higher, with a cumulative total nearing 90%:
+
+```plaintext
+Explained variance by each principal component: [0.72600625 0.23072944 0.03802925]
+```
+
+This higher explained variance allows for a more accurate and visually interpretable clustering. The 3D plots particularly highlight well-defined clusters, demonstrating that the algorithms perform well.
+
 ## 7. A comparison of the two solutions obtained, in terms of the objective function of the integer optimization problem. Optionally, you may provide any other additional criteria for comparison.
+
+The results of the two approaches differ significantly when evaluated based on the objective function value of the integer optimization problem:
+
+- **AMPL Solution:** Achieved an objective value of `500.929194`, indicating a more optimal and compact clustering solution with minimal within-cluster distances.
+
+- **Heuristic Approach:** Produced a total within-cluster distance of `61440.712295`, which is considerably higher, suggesting a less efficient clustering outcome compared to the AMPL solution.
+
+(Potential inerpretation)??
+In conclusion, the AMPL solution demonstrates superior performance in terms of the objective function, while the heuristic approach offers practical benefits such as speed and scalability.
 
 ## 8. Any other observation or comment you may want to add, or any problem you had when performing the assignment.
 
@@ -171,7 +258,6 @@ Conclusion:
 # Not to be included:
 
 ```{r}
-setwd("~/uni_folder/OTDM/UPC-OTDM-main/3/linprog")
 #cd /home/julian/uni_folder/OTDM/OTDM_Project_2/3/linprog/
 ```
 
