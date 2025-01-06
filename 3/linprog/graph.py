@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-"""
-Modified graph implementation to compute clusters based on the minimum spanning tree heuristic.
-"""
 from functools import total_ordering
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components
@@ -153,7 +149,7 @@ class Graph:
                 if x != y:
                     e += 1
                     mst.append(G[i-1])
-                    self._union(parent, rank, x, y)                
+                    self._union(parent, rank, x, y)
             self.kruskal_mst = mst
             return mst
 
@@ -219,7 +215,7 @@ class Graph:
             for i in range(V):
                 if selected[i]:
                     for j in range(V):
-                        if ((not selected[j]) and G[i][j]):  
+                        if ((not selected[j]) and G[i][j]):
                             if minimum > G[i][j]:
                                 minimum = G[i][j]
                                 x = i
